@@ -1,0 +1,10 @@
+server:
+  port: 10002
+
+duid:
+  server: http://localhost:10001/
+
+test:
+  url:
+    origin: 1
+    bound: 10_000_000
