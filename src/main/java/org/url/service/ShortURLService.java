@@ -1,8 +1,9 @@
 package org.url.service;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.url.exceptions.InvalidShortURLException;
@@ -14,13 +15,13 @@ import org.url.model.ShortURL;
 import org.url.model.ShortURLRequest;
 import org.url.model.ShortURLResponse;
 import org.url.records.ShortURLAlias;
-import org.url.repository.ShortURLRepository;
+import org.url.repository.ShortURLRedisRepository;
 import org.url.repository.ShortURLTestRepository;
 
 import javax.naming.directory.InvalidAttributesException;
 import java.time.LocalDateTime;
-import java.time.temporal.Temporal;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
@@ -31,25 +32,20 @@ public class ShortURLService {
     private DUIDHttp duidHttp;
 
     @Autowired
-    private ShortURLRepository shortURLRepository;
-
-    @Autowired
     private ShortURLTestRepository shortURLTestRepository;
 
     @Autowired
     private RandomGeneratorService randomGeneratorService;
 
     @Autowired
-    private AtomicLong counter;
+    private ShortURLRedisRepository shortURLRedisRepository;
 
-    @Value("${test.url.origin}")
-    private long randomOrigin;
-
-    @Value("${test.url.bound}")
-    private long randomBound;
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
 
     private final static String PROTOCOL = "http://";
     private final static String DOMAIN = "shorty.cm/";
+    private final static String ALIAS = "alias";
     private final static int ALIAS_LENGTH = 7;
     private final static int BASE_62 = 62;
 
@@ -58,13 +54,25 @@ public class ShortURLService {
         final ShortURLAlias alias = createAlias(request);
         ShortURL shortURL = shortURL(alias, request);
         log.info("Saving : " + shortURL);
-        shortURLRepository.save(shortURL);
+        CompletableFuture<ShortURL> redisSave = save(shortURL);
+        CompletableFuture.allOf(redisSave).join();
         return shortURLResponse(shortURL);
     }
 
+    @Async
+    public CompletableFuture<ShortURL> save(ShortURL shortURL) throws InterruptedException {
+        log.info("Saving to redis id: " + shortURL.getId());
+        return CompletableFuture.completedFuture(shortURLRedisRepository.save(shortURL));
+    }
+
+    @Async
+    public CompletableFuture<Long> saveRedisAlias(String alias) throws InterruptedException {
+        return CompletableFuture.completedFuture(redisTemplate.opsForSet().add(ALIAS, alias));
+    }
+
     public ShortURLResponse getLongURLByAlias(String alias) throws InvalidAttributesException, InvalidShortURLException {
-        Assert.isTrue(alias.length() != ALIAS_LENGTH, "Invalid Alias length");
-        ShortURL urlData = shortURLRepository.findByAlias(alias);
+        Assert.isTrue(alias.length() == ALIAS_LENGTH, "Invalid Alias length");
+        ShortURL urlData = shortURLRedisRepository.findByAlias(alias);
         if(urlData == null)
             throw new InvalidAttributesException("No Information found");
         if(LocalDateTime.now().isAfter(urlData.getExpiry()))
@@ -78,17 +86,15 @@ public class ShortURLService {
         final ShortURLAlias alias = createAlias(request);
         ShortURL shortURL = shortURL(alias, request);
         log.info("Saving : " + shortURL);
-        shortURLRepository.save(shortURL);
-        shortURLTestRepository.save(counter.incrementAndGet(), shortURL.getAlias());
+        CompletableFuture<ShortURL> redisSave = save(shortURL);
+        CompletableFuture<Long> saveRedisAlias = saveRedisAlias(shortURL.getAlias());
+        CompletableFuture.allOf(redisSave, saveRedisAlias).join();
         return shortURLResponse(shortURL);
     }
 
     public ShortURLResponse getLongURLByAliasTest() throws InvalidAttributesException, InvalidShortURLException {
-        String alias = shortURLTestRepository.find(randomGeneratorService.getRandomLong(1, 1_000_000));
-        while(alias == null) {
-            alias = shortURLTestRepository.find(randomGeneratorService.getRandomLong(1, 1_000_000));
-        }
-        return shortURLResponse(shortURLRepository.findByAlias(alias));
+        String alias = redisTemplate.opsForSet().randomMember(ALIAS);
+        return shortURLResponse(shortURLRedisRepository.findByAlias(alias));
     }
 
     private ShortURL shortURL(ShortURLAlias alias, ShortURLRequest request) {
@@ -125,19 +131,20 @@ public class ShortURLService {
         }
         String chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         int count = ALIAS_LENGTH;
-        Long duid = duid().getDuid();
+        long duid = duid().getDuid();
+        long tempDuid = duid;
         StringBuilder alias = new StringBuilder();
-        while (duid > 0 && count != 0) {
-            int index = Math.floorMod(duid, BASE_62);
+        while (tempDuid > 0 && count != 0) {
+            int index = Math.floorMod(tempDuid, BASE_62);
             alias.append(chars.charAt(index));
-            duid /= BASE_62;
+            tempDuid /= BASE_62;
             count--;
         }
         return ShortURLAlias.of(duid, alias.toString());
     }
 
     private ShortURLAlias validateAlias(String alias) throws InvalidAttributesException {
-        if(shortURLRepository.findByAlias(alias) != null)
+        if(shortURLRedisRepository.findByAlias(alias) != null)
             throw new InvalidAttributesException("Alias already exists");
         if(alias.length() != ALIAS_LENGTH)
             throw new InvalidAttributesException("Alias length incorrect, should be of length " + ALIAS_LENGTH);

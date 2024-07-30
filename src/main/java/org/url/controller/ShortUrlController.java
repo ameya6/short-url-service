@@ -26,7 +26,7 @@ public class ShortUrlController {
         }
     }
 
-    @GetMapping("/create/{alias}")
+    @GetMapping("/fetch/{alias}")
     public ResponseEntity<ShortURLResponse> getURLByAlias(@PathVariable String alias) {
         try {
             return ResponseEntity.ok(shortURLService.getLongURLByAlias(alias));
