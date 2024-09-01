@@ -2,10 +2,34 @@ server:
   port: 10002
 
 spring:
+  kafka:
+    producer:
+      bootstrap-servers: 192.168.0.206:9092 # add other servers later
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
   data:
     redis:
-      host: 192.168.0.201
+      host: 192.168.0.206
       port: 6379
+  datasource:
+    url: jdbc:postgresql://192.168.0.206:26257/url_shortner
+    username: root
+    password:
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
 
 duid:
   server: http://localhost:10001/
+
+short-url-jpa:
+  server: http://localhost:10003/
+
+short-url-redis:
+  server: http://localhost:10006/

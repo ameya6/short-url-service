@@ -1,10 +1,10 @@
 package org.url.model;
 
+import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.index.Indexed;
-import org.w3c.dom.Entity;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
