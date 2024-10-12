@@ -1,8 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
     <Properties>
         <Property name="logPath">logs/elk-example/</Property>
         <Property name="rollingFileName">elk-example_app</Property>
-        <Property name="defaultPattern">[%highlight{%-5level}] %d{DEFAULT} %c{1}.%M() - %msg%n%throwable{short.lineNumber}</Property>
+        <Property name="defaultPattern"> %d{ISO8601} %-5level ${spring:spring.application.name} ${sys:hostName} ${sys:hostAddress} %t %c{1}.%M().%L - %msg%n%throwable{short.lineNumber}</Property>
         <Property name="logStashPattern">[%d{ISO8601}][%-5p][%-25c]%notEmpty{[%X{pipeline.id}]}%notEmpty{[%X{plugin.id}]} %m%n]</Property>
     </Properties>
     <Appenders>
@@ -16,7 +17,7 @@
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
             </Policies>
         </RollingFile>-->
-       <!-- <Socket name="socket" host="${sys:logstash.host.name:-localhost}" port="${sys:logstash.port.number:-9999}" reconnectionDelayMillis="5000">
+        <!--<Socket name="socket" host="192.168.0.206" port="9999" reconnectionDelayMillis="5000">
             <PatternLayout pattern="${defaultPattern}" />
         </Socket>-->
     </Appenders>

@@ -4,9 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.url.http.DUIDHttp;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestClient;
@@ -14,29 +11,20 @@ import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 import org.url.http.ShortURLJpaHttp;
 import org.url.http.ShortURLRedisHttp;
-import org.url.model.ShortURL;
 import org.url.utils.LocalDateTimeAdapter;
-
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Configuration
-@EnableRedisRepositories(repositoryImplementationPostfix="Redis")
-@EnableJpaRepositories(repositoryImplementationPostfix="Jpa")
 public class ApplicationConfiguration {
 
-    @Value("${duid.server}")
+    @Value("${server-url.duid}")
     private String duidServer;
 
-    @Value("${short-url-jpa.server}")
+    @Value("${server-url.jpa}")
     private String shortUrlJpaServer;
 
-    @Value("${short-url-redis.server}")
+    @Value("${server-url.redis}")
     private String shortUrlRedisServer;
 
     @Bean

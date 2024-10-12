@@ -1,11 +1,11 @@
 package org.url.http;
 
 
-import org.url.model.DUIDResponse;
+import org.duid.model.DUIDResponse;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 
-@HttpExchange("/duid-service/api/v1/duid")
+@HttpExchange("/duid")
 public interface DUIDHttp {
 
     @GetExchange("/generate")

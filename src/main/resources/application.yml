@@ -1,35 +1,73 @@
 server:
-  port: 10002
+  servlet:
+    context-path: /short-url-service
+  port: 10001
 
 spring:
+  threads:
+    virtual:
+      enabled: true
+  application:
+    name: short-url-service
   kafka:
     producer:
       bootstrap-servers: 192.168.0.206:9092 # add other servers later
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
-  data:
-    redis:
-      host: 192.168.0.206
-      port: 6379
-  datasource:
-    url: jdbc:postgresql://192.168.0.206:26257/url_shortner
-    username: root
-    password:
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-    show-sql: true
 
-duid:
-  server: http://localhost:10001/
+server-url:
+  duid:  http://192.168.0.206/
+  jpa:   http://192.168.0.206/
+  redis: http://192.168.0.206/
 
-short-url-jpa:
-  server: http://localhost:10003/
+url-info:
+  protocol: http://
+  domain: shorty.cm/
+  alias-length: 7
+  base-62: 62
 
-short-url-redis:
-  server: http://localhost:10006/
+---
+
+server:
+  servlet:
+    context-path: /short-url-service
+  port: 10001
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+  application:
+    name: short-url-service
+  threads:
+    virtual:
+      enabled: true
+  kafka:
+    producer:
+      bootstrap-servers: 192.168.0.206:9092 # add other servers later
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+server-url:
+  duid:  http://192.168.0.206/
+  jpa:   http://192.168.0.206/
+  redis: http://192.168.0.206/
+
+url-info:
+  protocol: http://
+  domain: shorty.cm/
+  alias-length: 7
+  base-62: 62
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  server:
+    port: 10011
+  security:
+    enabled: false

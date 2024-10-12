@@ -1,21 +1,25 @@
 package org.url.http;
 
 
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
-import org.url.model.DUIDResponse;
+import org.url.api.model.ShortURLDTO;
 import org.url.model.ShortURL;
 
 import java.util.List;
 
-@HttpExchange("/api/v1/jpa/url")
+@HttpExchange("/jpa/url")
 public interface ShortURLJpaHttp {
 
     @GetExchange("/")
     List<ShortURL> get();
 
     @PostExchange("/create")
-    ShortURL create(@RequestBody ShortURL shortURL);
+    ShortURLDTO create(@RequestBody ShortURLDTO shortURLDTO);
+
+    @PostExchange("/fetch/${alias}")
+    ShortURLDTO findByAlias(@PathVariable String alias);
 }

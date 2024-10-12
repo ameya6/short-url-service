@@ -4,8 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.url.model.ShortURLRequest;
-import org.url.model.ShortURLResponse;
+import org.url.api.model.ShortURLResponse;
 import org.url.service.ShortURLService;
 
 @RestController
@@ -28,7 +27,7 @@ public class ShortUrlTestController {
     @GetMapping("/read")
     public ResponseEntity<ShortURLResponse> readTest() {
         try {
-            return ResponseEntity.ok(shortURLService.getLongURLByAliasTest());
+            return ResponseEntity.ok(shortURLService.getRandomURLInfo());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ShortURLResponse.builder().exception(e.getMessage()).build());
         }

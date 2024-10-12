@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.url</groupId>
         <artifactId>short-url-parent</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <groupId>org.short</groupId>
@@ -15,12 +15,23 @@
     <version>1.0-SNAPSHOT</version>
 
     <dependencies>
+        <dependency>
+            <groupId>org.duid</groupId>
+            <artifactId>duid-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.url.api</groupId>
+            <artifactId>short-url-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <docker.username>test</docker.username>
     </properties>
 
     <build>
@@ -31,9 +42,31 @@
                 <configuration>
                     <excludes>
                         <exclude>
-
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.4.3</version>
+                <configuration>
+                    <from>
+                        <image>eclipse-temurin:21</image>
+                    </from>
+                    <to>
+                        <image>registry.hub.docker.com/${docker.username}/${project.artifactId}:${project.version}</image>
+                        <image>registry.hub.docker.com/${docker.username}/${project.artifactId}:latest</image>
+                    </to>
+                    <container>
+                        <jvmFlags>
+                            <jvmFlag>-XX:InitialRAMPercentage=20.0</jvmFlag>
+                            <jvmFlag>-XX:MaxRAMPercentage=90.0</jvmFlag>
+                        </jvmFlags>
+                    </container>
                 </configuration>
             </plugin>
         </plugins>
